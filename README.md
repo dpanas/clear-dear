@@ -3,6 +3,20 @@
 TBA
 
 
+## Environment set-up
+
+Note: pandas and torchvision installs will also supply numpy, torch, pillow etc
+```
+pip install pandas==2.2.3
+pip install matplotlib==3.9.3
+pip install seaborn==0.13.2
+pip install torchvision==0.22.0
+pip install jupyter notebook
+python -m ipykernel install --name clear-dear
+pip install torchvision==0.22.0
+```
+
+
 ## Repository structure
 
 Draft at the moment, add / review - not yet sure how things will interact?
