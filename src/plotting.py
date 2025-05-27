@@ -25,6 +25,8 @@ def plot_side_by_side( image, image2, title= None):
             ax[1].set_title( 'Downsampled')
 
 def plot_bbox( x_ll, y_ll, x_ru, y_ru, ax= None):
+    # NOTE: this y-first signature is because numpy PIL images have x / 1st coord on the vertical
+    # axis, but data annotation was with horizontal as x / 1st coord
     if ax is None:
         _, ax = plt.subplots()
     ax.plot( 
