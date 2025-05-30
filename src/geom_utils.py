@@ -6,6 +6,29 @@ def get_dims( bbox):
     """
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
+def get_area( bbox):
+    """
+    To asses size of objects for possible filtering / annotating help.
+    """
+    x_side, y_side = get_dims( bbox)
+    return x_side * y_side
+
+def intersection( bbox_a, bbox_b):
+    """
+    To check if objects overlap and how much for possible filtering / annot.
+    """
+    x1_a, y1_a, x2_a, y2_a = bbox_a
+    x1_b, y1_b, x2_b, y2_b = bbox_b
+    x1_ = max( x1_a, x1_b)
+    y1_ = max( y1_a, y1_b)
+    x2_ = min( x2_a, x2_b)
+    y2_ = min( y2_a, y2_b)
+    try:
+        assert (x2_ >  x1_) & (y2_ > y1_)
+        return [x1_, y1_, x2_, y2_]
+    except AssertionError:
+        return [0,0,0,0]
+
 def bbox_np( bbox):
     """
     Numpy / PIL have swapped axes wrt pyplot, and the bounding boxes in the data are in
@@ -70,13 +93,3 @@ def crop_to_bbox( image_array, bbox):
     """
     x1, y1, x2, y2 = bbox
     return image_array[x1:x2,:,:][:,y1:y2,:]
-
-def intersect( bbox_a, bbox_b):
-    x1_a, y1_a, x2_a, y2_a = bbox_a
-    x1_b, y1_b, x2_b, y2_b = bbox_b
-    x1_cond = (x1_a < x1_b < x2_a)
-    x2_cond = (x1_a < x2_b < x2_a)
-    y1_cond = (y1_a < y1_b < y2_a)
-    y2_cond = (y1_a < y2_b < y2_a)
-    #print(x1_cond,x2_cond)
-    return ( x1_cond or x2_cond ) and (  y1_cond or y2_cond )
