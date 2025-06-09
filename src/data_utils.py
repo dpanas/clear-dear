@@ -23,3 +23,13 @@ def to_numpy( image_tensor):
         return image_array
     else:
         raise Exception(f'Weird shape for an image: {image_array.shape}')
+
+def to_from_text( file_path, content= None, encoding= 'utf-8', as_bytes= False):
+    mode = 'w' if content is not None else 'r'
+    if as_bytes:
+        mode += 'b'
+        encoding = None
+    with open( file_path, mode, encoding= encoding) as stream:
+        if mode.startswith('r'):
+            return stream.read()
+        stream.write( content)
