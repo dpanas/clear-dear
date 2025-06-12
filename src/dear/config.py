@@ -11,6 +11,8 @@ def get_config():
         '--data_root', type=str, default='../data', 
         help='Data directory, with subfolders matching the `dataset` argument.'
     )
+    parser.add_argument('--normalize', action= 'store_true', help= 'Whether to apply normalization.')
+    parser.add_argument('--add_flips', action= 'store_true', help= 'Whether to apply random flips.')
 
     # Training settings
     parser.add_argument('--batch_size', type=int, default=128)

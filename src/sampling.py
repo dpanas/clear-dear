@@ -68,7 +68,6 @@ def prep_samples_unlabelled(
         lambda x: [int(y) for y in x]
     )
     df['image'] = df.apply( lambda x: name_sample_image( image_name, x['xs'], x['ys']), axis= 1)
-    print(df.columns)
     return df
 
 def prep_samples_for_annot( 

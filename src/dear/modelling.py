@@ -17,24 +17,10 @@ from .model import *
 from .sagan import *
 from .config import *
 from .causal import *
+from .data import make_dataloader
 
 global device
 device = utils.get_device()
-
-def get_first_batch( data_loader, label_idx):    
-
-    for batch_idx, (x, label, im_name) in enumerate(data_loader):
-        x = x.to(device)
-        sup_flag = label[:, 0] != -1
-
-        if sup_flag.sum() > 0:
-            label = label[sup_flag, :][:, label_idx].float()
-
-        num_labels = len(label_idx)
-        label = label.to(device)
-        if batch_idx > 0:
-            break
-    return x, label, im_name
 
 def main():
 
@@ -42,35 +28,33 @@ def main():
     args = get_config()
     args.command = 'python ' + ' '.join(sys.argv)
     args.data_dir = f'{args.data_root}/{args.dataset}'
-
-    global device
-    device = utils.get_device()
+    args.save_dir = f'{args.result_root}/{args.dataset}'
     
     global celoss
     celoss = torch.nn.BCEWithLogitsLoss()
     
     if 'pendulum' in args.dataset:
-        label_idx = range(4)
+        raise Exception('Not available')
     elif args.dataset == 'MLRSNet':
-        label_idx = [7,39,8]  
+        args.label_idx = [7,39,8]  
     elif args.dataset == 'xView-train_samples-test':
-        label_idx = []
+        args.label_idx = []
         args.label_file= None
     elif args.dataset == 'xView_0':
-        label_idx = [2,3,4]
+        args.label_idx = ['buildings','roads','cars']
         args.label_file = 'labels.csv'
     else:
         if args.labels == 'smile':
-            label_idx = [31, 20, 19, 21, 23, 13]
+            args.label_idx = [31, 20, 19, 21, 23, 13]
         elif args.labels == 'age':
-            label_idx = [39, 20, 28, 18, 13, 3]
+            args.label_idx = [39, 20, 28, 18, 13, 3]
         else:
             raise NotImplementedError("Not supported structure.")
-    num_label = len(label_idx)
+    num_label = len(args.label_idx)
 
     pretr_mod = '_pretr' if args.pretrained else ''
-    save_dir = './results/{}/{}_{}_sup{}{}_res{}/'.format(
-        args.dataset, args.labels, args.prior, str(args.sup_type), pretr_mod, args.image_size
+    save_dir = '{}/{}_{}_sup{}{}_res{}_seed{}/'.format(
+        args.save_dir, args.labels, args.prior, str(args.sup_type), pretr_mod, args.image_size, args.seed
         )
         
     utils.make_folder(save_dir)
@@ -84,7 +68,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    train_loader, test_loader = utils.make_dataloader(args)
+    train_loader, test_loader = make_dataloader(args)
     log_file_name = os.path.join(save_dir, 'log.txt')
     global log_file
     if args.resume:
@@ -154,12 +138,10 @@ def main():
     fixed_unif_noise = torch.rand(1, args.latent_dim, device=device) * 2 - 1
     fixed_zeros = torch.zeros(1, args.latent_dim, device=device)
 
-    
-    
     # Train
     print('Start training...')
     for i in range(args.start_epoch, args.start_epoch + args.n_epochs):
-        train(i, model, discriminator, encoder_optimizer, decoder_optimizer, D_optimizer, train_loader, label_idx,
+        train(i, model, discriminator, encoder_optimizer, decoder_optimizer, D_optimizer, train_loader, args.label_idx,
                   args.print_every, save_dir, prior_optimizer, A_optimizer)
         if i % args.save_model_every == 0:
             torch.save({'model': model.module.state_dict(), 'discriminator': discriminator.module.state_dict()},
@@ -169,7 +151,6 @@ def main():
        save_dir + 'model' + str(i) + '.sav'
        )
        
-
 
 def train(epoch, model, discriminator, encoder_optimizer, decoder_optimizer, D_optimizer,
               train_loader, label_idx, print_every, save_dir,
@@ -183,16 +164,7 @@ def train(epoch, model, discriminator, encoder_optimizer, decoder_optimizer, D_o
         # supervision flag
         sup_flag = label[:, 0] != -1
         if sup_flag.sum() > 0:
-            label = label[sup_flag, :][:, label_idx].float()
-        if 'pendulum' in args.dataset:
-            if args.sup_type == 'ce':
-                # Normalize labels to 0,1
-                scale = get_scale()
-                label = (label - scale[0]) / (scale[1] - scale[0])
-            else:
-                # Normalize labels to mean 0 std 1
-                mm, ss = get_stats()
-                label = (label - mm) / ss
+            label = label[ sup_flag, :].float()
         num_labels = len(label_idx)
         label = label.to(device)
 
@@ -240,6 +212,7 @@ def train(epoch, model, discriminator, encoder_optimizer, decoder_optimizer, D_o
 
             # WITH THE SUPERVISED LOSS
             if sup_flag.sum() > 0:
+                # subset only the supervised portion!!
                 label_z = z_fake_mean[sup_flag, :num_labels]
                 if 'pendulum' in args.dataset:
                     if args.sup_type == 'ce':
@@ -314,18 +287,3 @@ def test(epoch, i, model, test_data, save_dir, trav= True):
 
     model.train()
 
-
-def get_scale():
-    '''return max and min of training data'''
-    scale = torch.Tensor([[0.0000, 48.0000, 2.0000, 2.0178], [40.5000, 88.5000, 14.8639, 14.4211]])
-    return scale
-
-def get_stats():
-    '''return mean and std of training data'''
-    mm = torch.Tensor([20.2500, 68.2500, 6.9928, 8.7982])
-    ss = torch.Tensor([11.8357, 11.8357, 2.8422, 2.1776])
-    return mm, ss
-
-
-if __name__ == '__main__':
-    main()
