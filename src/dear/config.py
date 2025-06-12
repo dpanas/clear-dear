@@ -71,7 +71,7 @@ def get_config():
     parser.add_argument('--save_n_samples', type=int, default=64)
     parser.add_argument('--save_n_recons', type=int, default=32)
     parser.add_argument('--nrow', type=int, default=8)
-    parser.add_argument('--result_dir', type=str, default= '../results', help= 'Directory for storing results')
+    parser.add_argument('--results_root', type=str, default= '../results', help= 'Directory for storing results')
 
     args = parser.parse_args()
 

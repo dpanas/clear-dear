@@ -28,7 +28,7 @@ def main():
     args = get_config()
     args.command = 'python ' + ' '.join(sys.argv)
     args.data_dir = f'{args.data_root}/{args.dataset}'
-    args.save_dir = f'{args.result_root}/{args.dataset}'
+    args.save_dir = f'{args.results_root}/{args.dataset}'
     
     global celoss
     celoss = torch.nn.BCEWithLogitsLoss()
