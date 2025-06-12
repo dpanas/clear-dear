@@ -4,6 +4,7 @@ import argparse
 import torch
 import torch.utils.data
 
+import time as tm
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -160,6 +161,8 @@ def train(epoch, model, discriminator, encoder_optimizer, decoder_optimizer, D_o
     trav = A_optimizer is not None
 
     for batch_idx, (x, label, _) in enumerate(train_loader):
+        start_ = tm.time()
+        
         x = x.to(device)
         # supervision flag
         sup_flag = label[:, 0] != -1
@@ -255,7 +258,7 @@ def train(epoch, model, discriminator, encoder_optimizer, decoder_optimizer, D_o
                 epoch, 100. * batch_idx / len(train_loader),
                 loss_d.item(), loss_encoder.item(), loss_decoder.item(), sup_loss.item(),
                 encoder_score.mean().item(), decoder_score.mean().item()))
-            print(log)
+            print(f'{(tm.time() - start_)/60} | {log}')
             log_file.write(log + '\n')
             log_file.flush()
 
