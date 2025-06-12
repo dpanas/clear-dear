@@ -61,7 +61,7 @@ def make_dataloader(args):
     
     else:
         train_set = DatasetLabelled( 
-            args.data_dir, args.image_size, args.label_file, args.labels_index, 
+            args.data_dir, args.image_size, args.label_file, args.label_idx, 
             args.sup_prop, args.normalize, args.add_flips
         )
         train_loader = torch.utils.data.DataLoader(
