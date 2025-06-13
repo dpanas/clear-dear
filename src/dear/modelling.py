@@ -41,7 +41,7 @@ def main():
     elif args.dataset == 'xView-train_samples-test':
         args.label_idx = []
         args.label_file= None
-    elif args.dataset == 'xView_0':
+    elif args.dataset.split('_')[0] == 'xView':
         args.label_idx = ['buildings','roads','cars']
         args.label_file = 'labels.csv'
     else:
