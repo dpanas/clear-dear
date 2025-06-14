@@ -54,8 +54,11 @@ def main():
     num_label = len(args.label_idx)
 
     pretr_mod = '_pretr' if args.pretrained else ''
-    save_dir = '{}/{}_{}_sup{}{}_res{}_seed{}/'.format(
-        args.save_dir, args.labels, args.prior, str(args.sup_type), pretr_mod, args.image_size, args.seed
+    norm_mod = '_norm' if args.normalize else ''
+    flips_mod = '_flips' if args.add_flips else ''
+    save_dir = '{}/{}_{}_sup{}{}{}{}_res{}_batch{}_seed{}/'.format(
+        args.save_dir, args.labels, args.prior, str(args.sup_type), pretr_mod, norm_mod, flips_mod,
+        args.image_size, args.batch_size, args.seed
         )
         
     utils.make_folder(save_dir)
