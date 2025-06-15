@@ -72,7 +72,7 @@ def main():
     train_loader, test_loader = make_dataloader(args)
     log_file_name = os.path.join(save_dir, 'log.txt')
     global log_file
-    if args.resume:
+    if args.start_epoch > 1:
         log_file = open(log_file_name, "at")
     else:
         log_file = open(log_file_name, "wt")
@@ -118,7 +118,7 @@ def main():
     D_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr_d, betas=(args.beta1, args.beta2))
 
     # Load model from checkpoint
-    if args.resume:
+    if args.start_epoch > 1:
         ckpt_dir = args.ckpt_dir if args.ckpt_dir != '' else save_dir
         ckpt_ = f'{ckpt_dir}model{args.start_epoch}.sav'
         assert os.path.exists( ckpt_)

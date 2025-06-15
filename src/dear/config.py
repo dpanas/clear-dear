@@ -59,7 +59,6 @@ def get_config():
     parser.add_argument('--d_conv_dim', type=int, default=32, help='base number of channels in discriminator')
 
     # Pretrained model
-    parser.add_argument('--resume', action='store_true')
     parser.add_argument('--ckpt_dir', type=str, default='')
 
     # Output and save
