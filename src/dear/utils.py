@@ -27,6 +27,12 @@ def denorm(x):
     out = (x + 1) / 2
     return out.clamp_(0, 1)
 
+def scale_output( x):
+    x_ = x.detach().numpy()
+    x_ = x_ - x_.min()
+    x_ = x_/ x_.max()
+    return (x_ * 255).astype(np.uint8)
+
 def write_config_to_file(config, save_path):
     with open(os.path.join(save_path, 'config.txt'), 'w') as file:
         for arg in vars(config):

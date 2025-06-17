@@ -2,8 +2,11 @@ import json
 import pickle
 
 import numpy as np
+import pandas as pd
 
 from PIL import Image
+import src.geometry as sgeo 
+
 
 def from_json( file_path, encoding= None):
     with open( file_path, 'r', encoding= encoding) as inn:
@@ -44,3 +47,32 @@ def to_from_text( file_path, content= None, encoding= 'utf-8', as_bytes= False):
         if mode.startswith('r'):
             return stream.read()
         stream.write( content)
+
+def bbox_from_str( bbox_str):
+    return [int(y.strip()) for y in bbox_str.strip('[]()').split(',')]
+
+## --- xView specific stuff:
+
+xView_car_set = set([17,18,20])
+xView_bus_truck_set = set([19,21,23,24,25,26,27,28])
+
+xView_building_flagger = lambda x: x == 73
+xView_car_flagger = lambda x: x in xView_car_set
+xView_bus_truck_flagger = lambda x: x in xView_bus_truck_set
+
+def parse_xView_geojson( file_path, labelname_path):
+    label_li = from_json( file_path)['features']
+    labelnames_di = to_from_pickle( labelname_path)
+    df = pd.DataFrame([ x['properties'] for x in label_li])
+    df['bbox'] = df['bounds_imcoords'].map( bbox_from_str)
+    df.drop(
+        labels= ['cat_id','edited_by','point_geom','grid_file','ingest_time','bounds_imcoords'], axis= 1, inplace= True
+    )
+    df.rename( columns= {'type_id':'cat_id'}, inplace= True)
+    df['cat'] = df['cat_id'].map( labelnames_di)
+    df['bbox_np'] = df['bbox'].apply( sgeo.bbox_np)
+    df['feature_area'] = df['bbox'].apply( sgeo.get_area)
+    df['building_flag'] = df['cat_id'].map( xView_building_flagger).astype(int)
+    df['car_flag'] = df['cat_id'].map( xView_car_flagger).astype(int)
+    df['bus_truck_flag'] = df['cat_id'].map( xView_bus_truck_flagger).astype(int)
+    return df
