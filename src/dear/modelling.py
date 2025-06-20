@@ -122,6 +122,7 @@ def main():
 
     # Load model from checkpoint
     if args.start_epoch > 1:
+        print(f'Resuming training from epoch {args.start_epoch}')
         ckpt_dir = args.ckpt_dir if args.ckpt_dir != '' else save_dir
         ckpt_ = f'{ckpt_dir}model{args.start_epoch}.sav'
         assert os.path.exists( ckpt_)
@@ -144,12 +145,14 @@ def main():
 
     # Train
     print('Start training...')
+    start = tm.time()
     for i in range(args.start_epoch, args.start_epoch + args.n_epochs):
         train(i, model, discriminator, encoder_optimizer, decoder_optimizer, D_optimizer, train_loader, args.label_idx,
                   args.print_every, save_dir, prior_optimizer, A_optimizer)
         if i % args.save_model_every == 0:
             torch.save({'model': model.module.state_dict(), 'discriminator': discriminator.module.state_dict()},
                        save_dir + 'model' + str(i) + '.sav')
+    print(f'Taining took {(tm.time()-start)/60} minutes')
     torch.save(
       {'model': model.module.state_dict(), 'discriminator': discriminator.module.state_dict()},
        save_dir + 'model' + str(i) + '.sav'
