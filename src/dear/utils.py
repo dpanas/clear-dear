@@ -8,6 +8,8 @@ from PIL import Image
 from torchvision import datasets, transforms
 from torch.utils.data import TensorDataset, DataLoader
 
+import src.data_utils as dut
+
 class DummyArgs():
     def __init__( self, di):
         self.__dict__.update( **di)
@@ -38,6 +40,26 @@ def write_config_to_file(config, save_path):
         for arg in vars(config):
             file.write(str(arg) + ': ' + str(getattr(config, arg)) + '\n')
 
+def read_config_from_( config_path):
+    # DEAR-main config is just a plain-text file..
+    config_lines = dut.to_from_text( config_path).split('\n')[:-1]
+    values = []
+    for v in [x.split(':')[1].strip() for x in config_lines]:
+        try:
+            v = int(v)
+        except ValueError:
+            try:
+                v = float(v)
+            except ValueError:
+                pass
+        values.append(v)
+    return dict(zip([x.split(':')[0].strip() for x in config_lines], values))
+
+def read_config_from( config_path):
+    config_dict = read_config_from_( config_path)
+    # make it into an args-like object for convenience:
+    return DummyArgs( config_dict)
+            
 def get_device( sagan_obj= None):
     if sagan_obj is not None:
         if not sagan_obj.config.disable_cuda and torch.cuda.is_available():

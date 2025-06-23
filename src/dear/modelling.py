@@ -23,6 +23,39 @@ from .data import make_dataloader
 global device
 device = utils.get_device()
 
+get_name_from_batch = lambda x: f'model{x}.sav'
+get_batch_from_name = lambda x: int( x.split('.sav')[0].split('model')[-1])
+
+def choose_checkpoint( checkpoint_dir):
+    pass
+
+def build_model( args, A_init, from_checkpoint= None, with_disc= True):
+    print('Start building model...')
+    n_nodes = len(A_init)
+    model = BGM( 
+        args.latent_dim, args.g_conv_dim, args.image_size, 
+        args.enc_dist, args.enc_arch, args.enc_fc_size, args.enc_noise_dim,
+        args.dec_dist, args.prior, n_nodes, A_init
+    )
+    discriminator = None
+    if with_disc:
+        discriminator = BigJointDiscriminator( 
+            args.latent_dim, args.d_conv_dim, args.image_size, args.dis_fc_size
+        )
+        if from_checkpoint is None:
+            return model, discriminator
+    if from_checkpoint is not None:
+        print(f'Loading weights from {from_checkpoint}')
+        checkpoint_data = torch.load( from_checkpoint, map_location= device)
+        model.load_state_dict( checkpoint_data['model'])
+        if not with_disc:
+            del checkpoint_data
+            return model, None
+        discriminator.load_state_dict( checkpoint_data[ 'discriminator'])
+        del checkpoint_data
+        return model, discriminator    
+    
+
 def main():
 
     global args

@@ -1,3 +1,4 @@
+import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -73,3 +74,11 @@ def mark_b( crop):
     crop = to_magenta( crop, y1, y2-2, x1, 'y')
     crop = to_magenta( crop, y1, y2-2, x2, 'y')
     return crop
+
+def plot_adjacency_matrix( adj_mat_numpy, labels_ordered):
+    scale = int( np.ceil( ( abs(adj_mat_numpy)).max()))
+    n_labels = len(labels_ordered)
+    _, ax = plt.subplots( figsize= (n_labels-1,n_labels-1))
+    ax.matshow( adj_mat_numpy, cmap= 'coolwarm', vmin= -scale, vmax= scale)
+    ax.set_xticks(list(range(n_labels)), labels_ordered)
+    ax.set_yticks(list(range(n_labels)), labels_ordered)
