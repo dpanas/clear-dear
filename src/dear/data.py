@@ -95,7 +95,11 @@ class DatasetLabelled(torch.utils.data.Dataset):
         self, data_dir, image_size, label_file, labels_index, sup_prop=1., normalize= True, add_flips= False
     ):
         self.images_dir = os.path.join( data_dir, 'images')
-        label_path = os.path.join( data_dir, label_file) if label_file is not None else label_file
+        label_path = label_file
+        if label_file is not None:
+            if not os.path.exists( label_file):
+                label_path = os.path.join( data_dir, label_file)
+        #label_path = os.path.join( data_dir, label_file) if label_file is not None else label_file
         self.image_names, self.labels = load_labels( label_path, labels_index)                          
         self.transforms = _transform_pipeline( image_size, normalize, add_flips)
                           
