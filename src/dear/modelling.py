@@ -42,6 +42,8 @@ def build_model( args, A_init, from_checkpoint= None, with_disc= True):
         discriminator = BigJointDiscriminator( 
             args.latent_dim, args.d_conv_dim, args.image_size, args.dis_fc_size
         )
+        #model = nn.DataParallel(model.to(device))
+        #discriminator = nn.DataParallel(discriminator.to(device))
         if from_checkpoint is None:
             return model, discriminator
     if from_checkpoint is not None:
