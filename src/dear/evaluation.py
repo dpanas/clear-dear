@@ -58,23 +58,23 @@ def load_from_folder( folder, checkpoint= None):
     model, _ = build_model( args, A_init, from_checkpoint= checkpoint_path, with_disc= False)
     return args, model
 
-def process_func( model, images, names, labels_ordered= labels_ordered):
+def process_func( model, images, names, labels_ordered):
     z_encoded = model.encode( images)
     ims_decoded = model.decoder( z_encoded)
     df = pd.DataFrame( z_encoded[:,:3].detach().cpu().numpy(), index= names, columns= labels_ordered)
     df['rmse_recon'] = torch.sqrt( ( ( ims_decoded.detach() - images.detach() )**2 ).mean( axis= [1,2,3]) ).cpu().numpy()
     return df
 
-def process_in_batches( data_loader, func_, device= device, batch_no= None):
+def process_in_batches( data_loader, func_, labels_ordered, device= device, batch_no= None):
     df = pd.DataFrame()
     for batch_idx, (images, labels, names) in enumerate(data_loader):
         images = images.to(device)
-        df = pd.concat( [df, func_( images, names)])
+        df = pd.concat( [df, func_( images, names, labels_ordered)])
         if batch_no is not None and batch_idx > batch_no:
             return df
     return df
 
-def compare_from_folder( folder, test_label_file= None):
+def compare_from_folder( folder, labels_ordered, test_label_file= None):
     checkpoints = list_checkpoints( folder)
     checkpoints_at = [get_batch_from_name( x) for x in checkpoints]
     # need to know the configuration:
@@ -92,7 +92,7 @@ def compare_from_folder( folder, test_label_file= None):
             model.to( device)
             process_func_ = partial( process_func, model)
             start = tm.time()
-            df = process_in_batches( data_loader, process_func_)
+            df = process_in_batches( data_loader, process_func_, labels_ordered)
             print(f'Took {(tm.time()-start)/60} mins.')
             out_path = f'{folder}perf_model{ii}.csv'
             df.to_csv( out_path)
