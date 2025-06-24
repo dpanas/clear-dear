@@ -74,7 +74,7 @@ def process_in_batches( data_loader, func_, labels_ordered, device= device, batc
             return df
     return df
 
-def compare_from_folder( folder, labels_ordered, test_label_file= None):
+def compare_from_folder( folder, labels_ordered, test_label_file= None, which= None):
     checkpoints = list_checkpoints( folder)
     checkpoints_at = [get_batch_from_name( x) for x in checkpoints]
     # need to know the configuration:
@@ -84,10 +84,13 @@ def compare_from_folder( folder, labels_ordered, test_label_file= None):
     if test_label_file is not None:
         args.label_file = test_label_file
     args.add_flips= False
-    data_loader, _ = sdd.make_dataloader( args)
-    
+    data_loader, _ = sdd.make_dataloader( args, test_flag= True)
+    if which is None:
+        which = [min(checkpoints_at),max(checkpoints_at)]
+    elif which== 'all':
+        which = checkpoints_at
     for ii in checkpoints_at:
-        if ii == min(checkpoints_at) or ii== max(checkpoints_at):
+        if ii in which:
             _, model = load_from_folder( folder, checkpoint= ii)
             model.to( device)
             process_func_ = partial( process_func, model)

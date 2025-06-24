@@ -44,7 +44,7 @@ def load_labels( label_path= None, labels_index= None, images_dir= None):
         print( f'Listed images in {im_names}, total of {len(im_names)}, assuming no labels.')
         return im_names, - np.ones( (len(im_names),1))
 
-def make_dataloader(args):
+def make_dataloader(args, test_flag= False):
 
     test_loader = None
     train_loader = None
@@ -64,9 +64,16 @@ def make_dataloader(args):
             args.data_dir, args.image_size, args.label_file, args.label_idx, 
             args.sup_prop, args.normalize, args.add_flips
         )
-        train_loader = torch.utils.data.DataLoader(
-            train_set, batch_size= args.batch_size, shuffle= True, drop_last= True, num_workers= 4
-        )
+        if not test_flag:
+            train_loader = torch.utils.data.DataLoader(
+                train_set, batch_size= args.batch_size, shuffle= True, drop_last= True, num_workers= 4
+            )
+        else:
+            # for test we do not need shuffling or dropping:
+            train_loader = torch.utils.data.DataLoader(
+                train_set, batch_size= args.batch_size, num_workers= 4
+            )
+            
 
     return train_loader, test_loader
 
