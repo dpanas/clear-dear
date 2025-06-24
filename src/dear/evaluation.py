@@ -70,7 +70,7 @@ def process_func( model, images, names, labels_ordered, check= False):
             dut.to_numpy(images[0].detach().cpu()), dut.to_numpy(ims_decoded[0].detach().cpu()), 
             title= f'RMSE {np.round(rmse,3)}'
         )
-        plt.savefig(f'../../results/{names[0]}.png')
+        plt.savefig(f'../results/{names[0]}.png')
         plt.close()
     df = pd.DataFrame( z_encoded[:,:3].detach().cpu().numpy(), index= names, columns= labels_ordered)
     df['rmse_recon'] = torch.sqrt( ( ( ims_decoded.detach() - images.detach() )**2 ).mean( axis= [1,2,3]) ).cpu().numpy()
