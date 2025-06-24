@@ -64,7 +64,7 @@ def process_func( model, images, names, labels_ordered, check= False):
     ims_decoded = model.decoder( z_encoded)
     if check:
         rmse = torch.sqrt( ( (ims_decoded[0].detach() - images[0].detach())**2).mean()).cpu().numpy()
-        splo.plot_side_by_side( 
+        plot_side_by_side( 
             dut.to_numpy(images[0].detach().cpu()), dut.to_numpy(ims_decoded[0].detach.cpu()), title= f'RMSE {rmse}'
         )
         plt.savefig(f'../../results/{names[0]}.png')
