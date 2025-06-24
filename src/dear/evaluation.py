@@ -3,6 +3,7 @@ import torch
 
 import time as tm
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from functools import partial
 
@@ -65,7 +66,8 @@ def process_func( model, images, names, labels_ordered, check= False):
     if check:
         rmse = torch.sqrt( ( (ims_decoded[0].detach() - images[0].detach())**2).mean()).cpu().numpy()
         plot_side_by_side( 
-            dut.to_numpy(images[0].detach().cpu()), dut.to_numpy(ims_decoded[0].detach().cpu()), title= f'RMSE {rmse}'
+            dut.to_numpy(images[0].detach().cpu()), dut.to_numpy(ims_decoded[0].detach().cpu()), 
+            title= f'RMSE {np.round(rmse,3)}'
         )
         plt.savefig(f'../../results/{names[0]}.png')
         plt.close()
