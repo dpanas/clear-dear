@@ -73,11 +73,11 @@ def process_func( model, images, names, labels_ordered, check= False):
     df['rmse_recon'] = torch.sqrt( ( ( ims_decoded.detach() - images.detach() )**2 ).mean( axis= [1,2,3]) ).cpu().numpy()
     return df
 
-def process_in_batches( data_loader, model, labels_ordered, device= device, batch_no= None):
+def process_in_batches( data_loader, model, labels_ordered, device= device, batch_no= None, check= False):
     df = pd.DataFrame()
     for batch_idx, (images, labels, names) in enumerate(data_loader):
         images = images.to(device)
-        df = pd.concat( [df, process_func( model, images, names, labels_ordered)])
+        df = pd.concat( [df, process_func( model, images, names, labels_ordered, check= check)])
         if batch_no is not None and batch_idx > batch_no:
             return df
     return df
