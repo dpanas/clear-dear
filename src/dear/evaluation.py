@@ -11,6 +11,7 @@ import src.dear.utils as sdu
 import src.dear.data as sdd
 
 from src.dear.modelling import build_model, get_batch_from_name, get_name_from_batch
+from src.plotting import plot_side_by_side
 
 global device
 device = sdu.get_device()
@@ -58,18 +59,25 @@ def load_from_folder( folder, checkpoint= None):
     model, _ = build_model( args, A_init, from_checkpoint= checkpoint_path, with_disc= False)
     return args, model
 
-def process_func( model, images, names, labels_ordered):
+def process_func( model, images, names, labels_ordered, check= False):
     z_encoded = model.encode( images)
     ims_decoded = model.decoder( z_encoded)
+    if check:
+        rmse = torch.sqrt( ( (ims_decoded[0].detach() - images[0].detach())**2).mean()).cpu().numpy()
+        splo.plot_side_by_side( 
+            dut.to_numpy(images[0].detach().cpu()), dut.to_numpy(ims_decoded[0].detach.cpu()), title= f'RMSE {rmse}'
+        )
+        plt.savefig(f'../../results/{names[0]}.png')
+        plt.close()
     df = pd.DataFrame( z_encoded[:,:3].detach().cpu().numpy(), index= names, columns= labels_ordered)
     df['rmse_recon'] = torch.sqrt( ( ( ims_decoded.detach() - images.detach() )**2 ).mean( axis= [1,2,3]) ).cpu().numpy()
     return df
 
-def process_in_batches( data_loader, func_, labels_ordered, device= device, batch_no= None):
+def process_in_batches( data_loader, model, labels_ordered, device= device, batch_no= None):
     df = pd.DataFrame()
     for batch_idx, (images, labels, names) in enumerate(data_loader):
         images = images.to(device)
-        df = pd.concat( [df, func_( images, names, labels_ordered)])
+        df = pd.concat( [df, process_func( model, images, names, labels_ordered)])
         if batch_no is not None and batch_idx > batch_no:
             return df
     return df
@@ -92,10 +100,11 @@ def compare_from_folder( folder, labels_ordered, test_label_file= None, which= N
     for ii in checkpoints_at:
         if ii in which:
             _, model = load_from_folder( folder, checkpoint= ii)
+            model.eval()
             model.to( device)
-            process_func_ = partial( process_func, model)
+            #process_func_ = partial( process_func, model)
             start = tm.time()
-            df = process_in_batches( data_loader, process_func_, labels_ordered)
+            df = process_in_batches( data_loader, model, labels_ordered, check= True)
             print(f'Took {(tm.time()-start)/60} mins.')
             out_path = f'{folder}perf_model{ii}.csv'
             df.to_csv( out_path)
